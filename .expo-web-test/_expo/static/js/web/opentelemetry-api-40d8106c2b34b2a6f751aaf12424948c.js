@@ -1,0 +1,1 @@
+__d(function(g,r,i,a,m,e,d){const t=()=>{},n={end:t,setAttribute:t,setStatus:t,recordException:t};m.exports={trace:{getTracer:()=>({startActiveSpan:(t,c)=>'function'==typeof c?c(n):n,startSpan:()=>n}),getActiveSpan:()=>{},setSpan:(t,n)=>t},context:{active:()=>({}),with:(t,n)=>'function'==typeof n?n():void 0},propagation:{inject:t,extract:()=>({})}}},839,[]);

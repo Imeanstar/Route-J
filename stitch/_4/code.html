@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RouteJ - 검색</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed": "#1e1b1c",
+                    "surface-container-low": "#f1f3ff",
+                    "primary": "#6c5a5c",
+                    "surface-variant": "#dce2f7",
+                    "on-surface": "#141b2b",
+                    "tertiary-fixed-dim": "#ccc5c6",
+                    "secondary-fixed": "#d0e9cf",
+                    "secondary": "#4e6450",
+                    "on-tertiary-container": "#666162",
+                    "on-surface-variant": "#4e4446",
+                    "surface": "#FFFFFF",
+                    "surface-dim": "#d3daef",
+                    "on-secondary-fixed-variant": "#374c39",
+                    "inverse-on-surface": "#edf0ff",
+                    "background": "#f9f9ff",
+                    "primary-fixed-dim": "#d9c1c4",
+                    "tertiary-fixed": "#e8e1e2",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#e5ddde",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#25181a",
+                    "on-tertiary-fixed-variant": "#4a4647",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#f9f9ff",
+                    "primary-fixed": "#f6dcdf",
+                    "on-secondary-fixed": "#0c2010",
+                    "subtle-gray": "#F3F4F6",
+                    "surface-container-highest": "#dce2f7",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#6c5a5c",
+                    "outline": "#807475",
+                    "surface-container": "#e9edff",
+                    "success": "#16A34A",
+                    "on-primary-container": "#705e60",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#f2d9dc",
+                    "on-background": "#141b2b",
+                    "on-secondary-container": "#546a55",
+                    "inverse-surface": "#293040",
+                    "warning": "#D97706",
+                    "outline-variant": "#d1c3c4",
+                    "inverse-primary": "#d9c1c4",
+                    "surface-container-high": "#e1e8fd",
+                    "secondary-container": "#d0e9cf",
+                    "on-primary-fixed-variant": "#534245",
+                    "tertiary": "#625d5e",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#b5cdb4",
+                    "danger": "#DC2626"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "md": "24px",
+                    "container-max": "1200px",
+                    "xl": "64px",
+                    "lg": "40px",
+                    "base": "8px",
+                    "sm": "12px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Noto Serif"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Noto Serif"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "display-lg": ["Noto Serif"],
+                    "display-lg-mobile": ["Noto Serif"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "body-sm": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "14px", "fontWeight": "600"}],
+                    "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f9f9ff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .search-focus:focus-within {
+            box-shadow: 0 0 0 2px #F2D9DC;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(242, 217, 220, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl">
+<div class="flex justify-between items-center w-full px-4 h-16 max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">RouteJ</h1>
+</div>
+<div class="flex items-center">
+<button class="active:scale-95 transition-transform p-2">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-24 px-4 max-w-container-max mx-auto space-y-lg">
+<!-- Search Bar Section -->
+<section class="mt-4">
+<div class="relative flex items-center search-focus transition-all duration-300 bg-subtle-gray rounded-xl overflow-hidden px-4 h-14">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-body-md placeholder:text-outline-variant px-3 h-full" placeholder="지역이나 테마를 검색하세요" type="text"/>
+<button class="p-1 hover:opacity-70">
+<span class="material-symbols-outlined text-outline" data-icon="mic">mic</span>
+</button>
+</div>
+</section>
+<!-- Recent Search Terms -->
+<section>
+<div class="flex justify-between items-center mb-sm">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">최근 검색어</h2>
+<button class="text-label-md text-outline hover:underline">모두 지우기</button>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 px-4 py-2 bg-surface border border-outline-variant/30 rounded-full text-label-md text-on-surface-variant cursor-pointer hover:bg-primary-container/20 transition-colors">#Seongsu</span>
+<span class="inline-flex items-center gap-1 px-4 py-2 bg-surface border border-outline-variant/30 rounded-full text-label-md text-on-surface-variant cursor-pointer hover:bg-primary-container/20 transition-colors">#Christmas</span>
+<span class="inline-flex items-center gap-1 px-4 py-2 bg-surface border border-outline-variant/30 rounded-full text-label-md text-on-surface-variant cursor-pointer hover:bg-primary-container/20 transition-colors">#Drive</span>
+<span class="inline-flex items-center gap-1 px-4 py-2 bg-surface border border-outline-variant/30 rounded-full text-label-md text-on-surface-variant cursor-pointer hover:bg-primary-container/20 transition-colors">#Cafe</span>
+</div>
+</section>
+<!-- Region Grid -->
+<section>
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-md">지역별 탐색</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer">
+<img alt="Seoul" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A cinematic, high-angle view of Seoul city at dusk with the N Seoul Tower in the distance. The lighting is warm and golden, transitioning into soft purple twilight. The image uses a soft minimalist aesthetic with a clean, airy composition, reflecting the RouteJ brand colors of warm pinks and subtle grays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB9NKdRwBCIzGrq_Uqma15w8-yKriftr8jhR7r-jcq9xzXI4QPopG-F6smCnAnYjMoOqkmJLHlQ4p-iqY_3pal_Zc8zH3oX4AEVD2z2ww4NFecIiKkg_RzQ7PlHWTou5ZKDbbyOVhieeZ2siJ2SCU-T7QlNvE_fwZmxU_ntFZxbP6WwR5lTgPnzqSgJMLouuVqLavPm9BWu0Rd0ZW0NFc3J4h0xuRl1wMSRhEKjb1Q10tG65ruj0G2DOs0ev1YRh5X5wmHUaaQHUlb"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+<span class="text-white font-label-md">서울</span>
+</div>
+</div>
+<div class="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer">
+<img alt="Gyeonggi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A serene landscape in the Gyeonggi province countryside featuring lush green hills and a modern, minimalist cafe building with large glass windows. The lighting is bright and airy, representing a calm morning. The visual style is editorial and clean, using a soft pastel-driven palette dominated by gentle greens and off-whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByAqTn96PWRIEJTNfKsD6lOMookNfVFAS7sc-aF_y0hGEu0l5YfHi2kr4Ys6YMT65CY_feluv-UbgkIBOK-ObTlcvON6vSsBAvNwsJtNYPnvCbanSC7LCDaVxQnUCfW7iWwVzhDexEnv-wFhmxdGfoaLDzhwT8H-MTzjJa3UdP6JPaM71xCB3uMmy2OakwZh533N02RYtOh7TYilZLx-6M8B3YGkeWCHJwK69lgbkj6vMOmjPky6JGEdaJ6ZztEG8BAO3g7lgFXgpg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+<span class="text-white font-label-md">경기</span>
+</div>
+</div>
+<div class="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer">
+<img alt="Incheon" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A modern waterfront view in Incheon Songdo, showcasing sleek architectural lines and a shimmering blue canal. The atmosphere is vibrant yet orderly, bathed in high-key midday sun. The composition is balanced and minimalist, emphasizing the 'lifestyle-first' feel of the RouteJ brand with its soft tonal layering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBYqWyfz4XKPKtEQD4vMaptrz4QEJ2VcxoOqPUS6DG48xZ3VYYjbnWhoVbcS76jsgEbgM5_7wCu6l_VZnPIb_hdSHIu-qXgG8tiWKl93KhsxbHuAXFENfePCfiH0oqTl_zIDN5hcN9b2_dEkTqkcULRhFp7odGOsS50hZLuK-lOnIj8pJEOkXF3JNrxnGQIC1xQNSONz8kMgc6nmfJuiCYfxzV1FI1WUjnKD9gkA3RD9lJxiLlNuY4TToGfPXeAdvOtT149PHFDy1D"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+<span class="text-white font-label-md">인천</span>
+</div>
+</div>
+<div class="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer">
+<div class="w-full h-full bg-secondary-container flex flex-col items-center justify-center gap-2">
+<span class="material-symbols-outlined text-on-secondary-container text-4xl" data-icon="add_location">add_location</span>
+<span class="text-on-secondary-container font-label-md">전체보기</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Recommendation Card -->
+<section>
+<div class="flex items-center gap-2 mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">이번 주 인기 지역: 성수동</h2>
+</div>
+<div class="relative h-48 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<img alt="Seongsu-dong" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A trendy, minimalist industrial-style cafe in Seongsu-dong, Seoul, with warm interior lighting and large windows. The scene is intimate and inviting, featuring clean lines, wooden furniture, and small potted plants. The color palette is composed of warm terracotta, soft pinks, and neutral grays, evoking a sense of calm reliability and creative inspiration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGjq5eqCiTyjxNZKlkHenNku2mw2jqXRKq7Qv4UiRzSPrPOuOMbW3vD8iooWPc9-FC3i-hyD0nA5kQIweifUfwbsG6BmlqdHsc_NXTPFbT4-RrNNsikK-vWlCFEaufRL6Hdm2yXyOpcaPHdfCyEGsX5v1EHUda6WQXpk23E-EUx4LS-OH2SRNi3tiv5wyIY3Vm3vyBTx8V049h7PDy3mRS1Z71-nOWtjs5NMrjXnIR3zbZJRnErydGGl_75k05MR5HQSH6Sy1cTNJv"/>
+<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-center px-6">
+<div class="px-3 py-1 bg-primary text-white text-[10px] rounded-full w-fit mb-2">HOT PLACE</div>
+<h3 class="text-white font-headline-sm text-2xl mb-1">성수동 팝업 투어</h3>
+<p class="text-white/80 text-body-sm">요즘 가장 핫한 성수동 코스 12개</p>
+</div>
+</div>
+</section>
+<!-- Theme Icon Grid -->
+<section>
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-md">테마별 추천</h2>
+<div class="grid grid-cols-4 gap-4">
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-16 h-16 rounded-2xl bg-primary-container/30 flex items-center justify-center group-hover:bg-primary-container/60 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="coffee">coffee</span>
+</div>
+<span class="text-label-md text-on-surface-variant">카페</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-16 h-16 rounded-2xl bg-secondary-container/30 flex items-center justify-center group-hover:bg-secondary-container/60 transition-colors">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="restaurant">restaurant</span>
+</div>
+<span class="text-label-md text-on-surface-variant">맛집</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center group-hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl" data-icon="park">park</span>
+</div>
+<span class="text-label-md text-on-surface-variant">자연</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-16 h-16 rounded-2xl bg-tertiary-container flex items-center justify-center group-hover:bg-on-tertiary-container/20 transition-colors">
+<span class="material-symbols-outlined text-tertiary text-3xl" data-icon="museum">museum</span>
+</div>
+<span class="text-label-md text-on-surface-variant">문화</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl rounded-t-xl shadow-[0_-4px_20px_0_rgba(17,24,39,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-primary-container/20 transition-colors scale-95 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">피드</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold hover:bg-primary-container/20 transition-colors scale-95 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="font-label-md text-label-md">검색</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-primary-container/20 transition-colors scale-95 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-md text-label-md">만들기</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-primary-container/20 transition-colors scale-95 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">프로필</span>
+</a>
+</nav>
+<script>
+        // Simple interactive effects for chips
+        document.querySelectorAll('.cursor-pointer').forEach(el => {
+            el.addEventListener('click', function() {
+                this.classList.add('scale-95');
+                setTimeout(() => this.classList.remove('scale-95'), 150);
+            });
+        });
+
+        // Search bar interaction
+        const searchInput = document.querySelector('input');
+        const searchContainer = searchInput.parentElement;
+        
+        searchInput.addEventListener('focus', () => {
+            searchContainer.classList.add('bg-white');
+            searchContainer.classList.remove('bg-subtle-gray');
+        });
+
+        searchInput.addEventListener('blur', () => {
+            searchContainer.classList.remove('bg-white');
+            searchContainer.classList.add('bg-subtle-gray');
+        });
+    </script>
+</body></html>

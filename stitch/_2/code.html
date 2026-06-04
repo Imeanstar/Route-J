@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom soft shadow for the date app aesthetic */
+        .soft-elevation {
+            box-shadow: 0 4px 20px 0 rgba(108, 90, 92, 0.05);
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#1e1b1c",
+                        "surface-container-low": "#f1f3ff",
+                        "primary": "#6c5a5c",
+                        "surface-variant": "#dce2f7",
+                        "on-surface": "#141b2b",
+                        "tertiary-fixed-dim": "#ccc5c6",
+                        "secondary-fixed": "#d0e9cf",
+                        "secondary": "#4e6450",
+                        "on-tertiary-container": "#666162",
+                        "on-surface-variant": "#4e4446",
+                        "surface": "#FFFFFF",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-fixed-variant": "#374c39",
+                        "inverse-on-surface": "#edf0ff",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#d9c1c4",
+                        "tertiary-fixed": "#e8e1e2",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#e5ddde",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#25181a",
+                        "on-tertiary-fixed-variant": "#4a4647",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f9f9ff",
+                        "primary-fixed": "#f6dcdf",
+                        "on-secondary-fixed": "#0c2010",
+                        "subtle-gray": "#F3F4F6",
+                        "surface-container-highest": "#dce2f7",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#6c5a5c",
+                        "outline": "#807475",
+                        "surface-container": "#e9edff",
+                        "success": "#16A34A",
+                        "on-primary-container": "#705e60",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#f2d9dc",
+                        "on-background": "#141b2b",
+                        "on-secondary-container": "#546a55",
+                        "inverse-surface": "#293040",
+                        "warning": "#D97706",
+                        "outline-variant": "#d1c3c4",
+                        "inverse-primary": "#d9c1c4",
+                        "surface-container-high": "#e1e8fd",
+                        "secondary-container": "#d0e9cf",
+                        "on-primary-fixed-variant": "#534245",
+                        "tertiary": "#625d5e",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#b5cdb4",
+                        "danger": "#DC2626"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "md": "24px",
+                        "container-max": "1200px",
+                        "xl": "64px",
+                        "lg": "40px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Noto Serif"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Noto Serif"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Noto Serif"],
+                        "display-lg-mobile": ["Noto Serif"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "14px", "fontWeight": "600"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-32">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 glass-nav">
+<div class="flex justify-between items-center w-full px-4 h-16 max-w-container-max mx-auto">
+<button class="p-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary font-bold">새로운 데이트 코스 등록</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="pt-20 px-4 max-w-2xl mx-auto space-y-8">
+<!-- Step 1: Basic Info & Thumbnail -->
+<section class="space-y-6">
+<div class="space-y-4">
+<label class="font-label-md text-label-md text-on-surface-variant block">제목 및 설명</label>
+<input class="w-full px-4 py-3 bg-subtle-gray border-1.5 border-transparent focus:border-primary-container focus:ring-0 rounded-xl transition-all outline-none text-body-md" placeholder="코스 이름을 입력해 주세요 (예: 성수동 햇살 가득 산책)" type="text"/>
+<textarea class="w-full px-4 py-3 bg-subtle-gray border-1.5 border-transparent focus:border-primary-container focus:ring-0 rounded-xl transition-all outline-none text-body-md resize-none" placeholder="이 코스의 매력 포인트를 설명해 주세요." rows="3"></textarea>
+</div>
+<div class="space-y-4">
+<label class="font-label-md text-label-md text-on-surface-variant block">대표 이미지</label>
+<div class="relative aspect-video w-full rounded-xl overflow-hidden bg-surface-container-low group cursor-pointer border-2 border-dashed border-outline-variant flex flex-col items-center justify-center space-y-2 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-4xl text-outline">add_photo_alternate</span>
+<span class="text-label-md font-label-md text-outline">이미지 업로드 (권장 16:9)</span>
+<img class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-10 transition-opacity" data-alt="A warm, dreamy photograph of a young couple's hands held together against a soft-focus background of a sun-drenched urban garden. The lighting is golden and ethereal, consistent with a soft minimalist editorial style. The color palette features creamy whites, pale pinks, and sage greens. The mood is intimate, serene, and evocative of a high-end lifestyle brand focused on shared memories." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3QAA7VmX5_deToe8egScfWnpl81-ibmdkzEpkeoLrwMlUeSJAaWYEVQzItQohUP5VHPkEHjE7wChRWQx5gNK4B2m-w1775kyI5f2h8fF1WT4GUij_uV3sfWAqeoySvjVmHe6MdZzbCkF9-RyWQyB_aAgrrfn_Odlf3Q632RtRYaY1n6KuMFrim4yobPLt4R9-v5gGCuUq0_Hwv7_d3Lbnkw0lp_nXMzJe-zqV97y7vNdYD6X9rmWfYesbKO6M3nMs6PY0kchYBTge"/>
+</div>
+</div>
+</section>
+<!-- Step 2: Meta Info -->
+<section class="space-y-6">
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant block">지역 선택</label>
+<select class="w-full px-4 py-3 bg-subtle-gray border-none rounded-xl text-body-md appearance-none">
+<option>서울</option>
+<option>인천</option>
+<option>경기</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant block">가까운 역</label>
+<input class="w-full px-4 py-3 bg-subtle-gray border-none rounded-xl text-body-md" placeholder="성수역" type="text"/>
+</div>
+</div>
+<div class="space-y-4">
+<label class="font-label-md text-label-md text-on-surface-variant block">테마 선택</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full border-1.5 border-primary-container bg-primary-container text-on-primary-container font-label-md text-label-md transition-colors"># Cafe</button>
+<button class="px-4 py-2 rounded-full border-1.5 border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary-container transition-colors"># Restaurant</button>
+<button class="px-4 py-2 rounded-full border-1.5 border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary-container transition-colors"># Park</button>
+<button class="px-4 py-2 rounded-full border-1.5 border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary-container transition-colors"># Activity</button>
+<button class="px-4 py-2 rounded-full border-1.5 border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary-container transition-colors"># Quiet</button>
+</div>
+</div>
+</section>
+<!-- Step 3: Stops Builder -->
+<section class="space-y-6">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface-variant">코스 경로 설정</label>
+<button class="flex items-center space-x-1 text-primary hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+<span class="font-label-md text-label-md">장소 추가</span>
+</button>
+</div>
+<div class="space-y-4 relative">
+<!-- Vertical Line Connector -->
+<div class="absolute left-[23px] top-8 bottom-8 w-[2px] bg-secondary-container z-0"></div>
+<!-- Stop 1 -->
+<div class="relative z-10 flex items-start space-x-4 bg-surface p-4 rounded-xl soft-elevation border border-outline-variant/10">
+<div class="w-12 h-12 shrink-0 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center font-bold">1</div>
+<div class="flex-grow">
+<div class="flex justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">오브제 카페</h4>
+<button class="text-outline hover:text-danger"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<p class="text-body-sm text-on-surface-variant">서울 성동구 성수동2가 123-45</p>
+<div class="mt-2 flex gap-2">
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-label-sm font-label-sm">Cafe</span>
+</div>
+</div>
+</div>
+<!-- Stop 2 -->
+<div class="relative z-10 flex items-start space-x-4 bg-surface p-4 rounded-xl soft-elevation border border-outline-variant/10">
+<div class="w-12 h-12 shrink-0 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center font-bold">2</div>
+<div class="flex-grow">
+<div class="flex justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">서울숲 산책로</h4>
+<button class="text-outline hover:text-danger"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<p class="text-body-sm text-on-surface-variant">서울 성동구 성수동1가 685-20</p>
+<div class="mt-2 flex gap-2">
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-label-sm font-label-sm">Park</span>
+</div>
+</div>
+</div>
+<!-- Empty State Prompt or Add Placeholder -->
+<div class="relative z-10 flex items-center justify-center p-8 border-2 border-dashed border-outline-variant/30 rounded-xl bg-subtle-gray/50 cursor-pointer hover:bg-subtle-gray transition-colors">
+<div class="text-center space-y-1">
+<span class="material-symbols-outlined text-outline">map</span>
+<p class="text-label-md text-on-surface-variant">다음 목적지를 검색하여 추가하세요</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Submit Section -->
+<section class="pt-8">
+<button class="w-full py-5 bg-primary-container text-on-surface font-bold text-lg rounded-xl shadow-lg active:scale-[0.98] transition-all hover:bg-primary-container/90">
+                코스 공개하기
+            </button>
+<p class="text-center text-body-sm text-on-surface-variant mt-4">작성하신 코스는 RouteJ 사용자들에게 공개됩니다.</p>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Hidden on Add screen as per UX Rule) -->
+<!-- Determined as "Task-Focused" screen, so shell is suppressed to prioritize focus -->
+<script>
+        // Simple Interaction Logic
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const ripple = document.createElement('div');
+                ripple.className = 'absolute inset-0 bg-white/20 rounded-xl scale-0 animate-ping pointer-events-none';
+                btn.classList.add('relative');
+                btn.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Chip Toggling Logic
+        const chips = document.querySelectorAll('button.rounded-full');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const isActive = chip.classList.contains('bg-primary-container');
+                if (isActive) {
+                    chip.classList.remove('bg-primary-container', 'text-on-primary-container', 'border-primary-container');
+                    chip.classList.add('border-outline-variant', 'text-on-surface-variant');
+                } else {
+                    chip.classList.add('bg-primary-container', 'text-on-primary-container', 'border-primary-container');
+                    chip.classList.remove('border-outline-variant', 'text-on-surface-variant');
+                }
+            });
+        });
+    </script>
+</body></html>
