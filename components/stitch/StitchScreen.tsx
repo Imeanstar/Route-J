@@ -6,12 +6,12 @@ import {
   type RefreshControlProps,
   type ViewStyle,
 } from 'react-native';
+import { stitchRefreshControl } from './stitchRefreshControl';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '@/constants/theme';
 import {
   StitchHeader,
   stitchContentTopInset,
-  stitchHeaderContentGap,
   stitchHeaderHeight,
   type StitchHeaderProps,
 } from './StitchHeader';
@@ -35,7 +35,11 @@ export function StitchScreen({
 }: Props) {
   const insets = useSafeAreaInsets();
   const headerH = stitchHeaderHeight(insets.top);
+  const contentTop = stitchContentTopInset(insets.top);
   const contentPad = { paddingBottom: bottomPad + insets.bottom };
+  const refresh =
+    refreshControl &&
+    stitchRefreshControl(refreshControl, { insetsTop: insets.top, scrollBelowHeader: false });
 
   return (
     <View style={styles.root}>
@@ -44,15 +48,15 @@ export function StitchScreen({
       </View>
       {scroll ? (
         <ScrollView
-          style={[styles.scroll, { marginTop: headerH }]}
+          style={styles.scroll}
           contentContainerStyle={[
             styles.content,
-            { paddingTop: stitchHeaderContentGap },
+            { paddingTop: contentTop },
             contentPad,
             contentStyle,
           ]}
           keyboardShouldPersistTaps="handled"
-          refreshControl={refreshControl}
+          refreshControl={refresh}
         >
           {children}
         </ScrollView>
@@ -61,7 +65,7 @@ export function StitchScreen({
           style={[
             styles.content,
             styles.flex,
-            { marginTop: headerH, paddingTop: stitchHeaderContentGap },
+            { paddingTop: contentTop },
             contentPad,
             contentStyle,
           ]}

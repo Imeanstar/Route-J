@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { AppIcon } from '@/components/AppIcon';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { STITCH_FEED_IMAGES } from '@/constants/stitch-assets';
@@ -64,7 +64,7 @@ export function StitchFeedCard({
           </View>
         </View>
         <View style={styles.favBtn}>
-          <MaterialIcons name="favorite-border" size={22} color={colors.primary} />
+          <AppIcon name="heart" size={22} color={colors.primary} />
         </View>
       </View>
       <View style={styles.body}>

@@ -1,0 +1,5 @@
+project_id = "mzqlnhvanubhkixggpvh"
+
+# 로그인 없이 anon 키로 장소 검색 호출 (웹·앱 공통)
+[functions.search-places]
+verify_jwt = false

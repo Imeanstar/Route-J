@@ -11,15 +11,12 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { AppIcon } from '@/components/AppIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StitchHeader, stitchHeaderHeight } from '@/components/stitch/StitchHeader';
-import {
-  STITCH_DETAIL_HERO,
-  STITCH_MAP_IMAGE,
-  STITCH_STOP_IMAGES,
-} from '@/constants/stitch-assets';
+import { RouteMap } from '@/components/RouteMap';
+import { STITCH_DETAIL_HERO, STITCH_STOP_IMAGES } from '@/constants/stitch-assets';
 import { VISIBILITY_LABELS } from '@/constants/app';
 import { colors, radius, shadow, spacing, type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -32,7 +29,8 @@ import {
   toggleLike,
   updateRouteVisibility,
 } from '@/lib/routes';
-import { kakaoMapPlaceUrl } from '@/lib/kakao';
+import { kakaoMapRouteUrl } from '@/lib/kakao';
+import { safeGoBack } from '@/lib/navigation';
 import { fetchPartnerBenefits, type PartnerBenefit } from '@/lib/partners';
 import { routePhotoUrl } from '@/lib/photos';
 import { usePlus } from '@/lib/plus';
@@ -101,10 +99,7 @@ export default function RouteDetailScreen() {
     routePhotoUrl(stops[0]?.photo_path) ?? STITCH_DETAIL_HERO;
 
   const openKakaoMap = () => {
-    const first = stops[0];
-    const url = first
-      ? kakaoMapPlaceUrl(first.place_name, first.address ?? undefined)
-      : kakaoMapPlaceUrl(route?.title ?? '서울');
+    const url = kakaoMapRouteUrl(stops);
     Linking.openURL(url).catch(() => Alert.alert('지도', '카카오맵을 열 수 없습니다.'));
   };
 
@@ -164,7 +159,7 @@ export default function RouteDetailScreen() {
     const label = VISIBILITY_LABELS[visibility];
     showConfirm('변경 확인', `${label}(으)로 변경할까요?`, async () => {
       await updateRouteVisibility(id!, visibility);
-      if (visibility === 'deleted') router.back();
+      if (visibility === 'deleted') safeGoBack(router);
       else load();
     });
   };
@@ -183,7 +178,7 @@ export default function RouteDetailScreen() {
         <StitchHeader
           variant="back"
           title={route.title}
-          onBack={() => router.back()}
+          onBack={() => safeGoBack(router)}
           onMore={isCoupleMember ? openManageMenu : undefined}
         />
       </View>
@@ -193,12 +188,24 @@ export default function RouteDetailScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setManageOpen(false)} />
           <View style={[styles.menuSheet, { paddingBottom: insets.bottom + spacing.md }]}>
             <Text style={[type.headlineSm, styles.menuTitle]}>우리 루트 관리</Text>
-            <Pressable style={styles.menuItem} onPress={() => setVisibility('public')}>
-              <Text style={type.labelMd}>공개로 변경</Text>
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => {
+                setManageOpen(false);
+                router.push(`/route/edit/${id}`);
+              }}
+            >
+              <Text style={type.labelMd}>수정</Text>
             </Pressable>
-            <Pressable style={styles.menuItem} onPress={() => setVisibility('couple_only')}>
-              <Text style={type.labelMd}>우리만 보기</Text>
-            </Pressable>
+            {route.visibility === 'public' ? (
+              <Pressable style={styles.menuItem} onPress={() => setVisibility('couple_only')}>
+                <Text style={type.labelMd}>우리만 보기</Text>
+              </Pressable>
+            ) : (
+              <Pressable style={styles.menuItem} onPress={() => setVisibility('public')}>
+                <Text style={type.labelMd}>공개로 변경</Text>
+              </Pressable>
+            )}
             <Pressable style={styles.menuItem} onPress={() => setVisibility('deleted')}>
               <Text style={[type.labelMd, { color: colors.danger }]}>삭제</Text>
             </Pressable>
@@ -227,7 +234,7 @@ export default function RouteDetailScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={[type.headlineMd, { color: colors.primary }]}>{route.title}</Text>
                 <View style={styles.locRow}>
-                  <MaterialIcons name="location-on" size={18} color={colors.onSurfaceVariant} />
+                  <AppIcon name="location" size={18} color={colors.onSurfaceVariant} />
                   <Text style={type.labelMd}>{VISIBILITY_LABELS[route.visibility]}</Text>
                 </View>
               </View>
@@ -242,7 +249,7 @@ export default function RouteDetailScreen() {
             ) : null}
             <View style={styles.authorRow}>
               <View style={styles.authorAvatar}>
-                <MaterialIcons name="person" size={20} color={colors.primary} />
+                <AppIcon name="person" size={20} color={colors.primary} />
               </View>
               <View>
                 <Text style={type.labelMd}>RouteJ Couple</Text>
@@ -260,21 +267,7 @@ export default function RouteDetailScreen() {
                 <Text style={[type.labelMd, { color: colors.primary }]}>Open Kakao Map</Text>
               </Pressable>
             </View>
-            <Pressable style={styles.mapBox} onPress={openKakaoMap}>
-              <Image source={{ uri: STITCH_MAP_IMAGE }} style={styles.mapImage} />
-              {[
-                { top: '50%' as const, left: '33%' as const },
-                { top: '25%' as const, left: '50%' as const },
-                { top: '75%' as const, left: '75%' as const },
-                { top: '33%' as const, left: '66%' as const },
-              ]
-                .slice(0, Math.min(4, stops.length))
-                .map((pos, i) => (
-                  <View key={i} style={[styles.mapMarker, pos]}>
-                    <Text style={styles.mapMarkerText}>{i + 1}</Text>
-                  </View>
-                ))}
-            </Pressable>
+            <RouteMap stops={stops} height={240} onPress={openKakaoMap} />
           </View>
 
           <Text style={[type.headlineSm, { color: colors.primary, marginBottom: spacing.md }]}>
@@ -297,16 +290,16 @@ export default function RouteDetailScreen() {
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={type.labelMd}>{stop.place_name}</Text>
-                  {stop.address ? (
-                    <Text style={[type.bodySm, { marginTop: 4 }]} numberOfLines={2}>
-                      {stop.address}
-                    </Text>
-                  ) : null}
                   {stop.rating != null && (
                     <Text style={{ color: colors.warning, marginTop: 4, fontSize: 13 }}>
-                      ★ {stop.rating}/5
+                      {'★'.repeat(stop.rating)}{'☆'.repeat(5 - stop.rating)} ({stop.rating})
                     </Text>
                   )}
+                  {stop.memo ? (
+                    <Text style={[type.bodySm, { marginTop: 4, color: colors.onSurfaceVariant }]} numberOfLines={3}>
+                      {stop.memo}
+                    </Text>
+                  ) : null}
                   {perk ? (
                     <Pressable
                       style={styles.plusPerk}
@@ -327,23 +320,20 @@ export default function RouteDetailScreen() {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.footerAction} onPress={onLike}>
-          <MaterialIcons
-            name={liked ? 'favorite' : 'favorite-border'}
+          <AppIcon
+            name="heart"
             size={24}
+            filled={liked}
             color={liked ? colors.error : colors.outline}
           />
           <Text style={type.labelSm}>{route.like_count}</Text>
         </Pressable>
         <Pressable style={styles.footerAction} onPress={onShare}>
-          <MaterialIcons name="share" size={24} color={colors.outline} />
+          <AppIcon name="share" size={24} color={colors.outline} />
           <Text style={type.labelSm}>Share</Text>
         </Pressable>
         <Pressable style={styles.footerAction} onPress={onBookmark}>
-          <MaterialIcons
-            name={bookmarked ? 'bookmark' : 'bookmark-border'}
-            size={24}
-            color={colors.outline}
-          />
+          <AppIcon name="bookmark" size={24} filled={bookmarked} color={colors.outline} />
           <Text style={type.labelSm}>Save</Text>
         </Pressable>
         <Pressable style={styles.startBtn} onPress={startRoute}>
@@ -403,26 +393,6 @@ const styles = StyleSheet.create({
   },
   mapSection: { marginTop: spacing.lg },
   mapHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm },
-  mapBox: {
-    height: 240,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.outlineVariant,
-  },
-  mapImage: { width: '100%', height: '100%' },
-  mapMarker: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  mapMarkerText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   timelineRow: { flexDirection: 'row', marginBottom: spacing.md },
   timelineCol: { width: 28, alignItems: 'center' },
   timelineDot: {

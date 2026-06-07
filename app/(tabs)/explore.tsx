@@ -14,6 +14,7 @@ import { StitchChip } from '@/components/stitch/StitchChip';
 import { StitchFab } from '@/components/stitch/StitchFab';
 import { StitchFeedCard } from '@/components/stitch/StitchFeedCard';
 import { StitchHeader, stitchContentTopInset } from '@/components/stitch/StitchHeader';
+import { stitchRefreshControl } from '@/components/stitch/stitchRefreshControl';
 import { EmptyRoutes } from '@/components/EmptyRoutes';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { GUEST_HOME_TOP } from '@/constants/app';
@@ -22,7 +23,7 @@ import { useAuth } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
 import { isOnboardingDone } from '@/lib/onboarding';
 import { fetchPopularRoutes } from '@/lib/routes';
-import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { EAS_SUPABASE_SETUP_HINT, isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { Region, Route, Station, Theme } from '@/types/database';
 
 export default function ExploreScreen() {
@@ -74,7 +75,7 @@ export default function ExploreScreen() {
 
   const loadRoutes = useCallback(async () => {
     if (!isSupabaseConfigured) {
-      setLoadError('Supabase 연결이 필요해요. .env 설정 후 앱을 다시 시작해주세요.');
+      setLoadError(EAS_SUPABASE_SETUP_HINT);
       setLoading(false);
       setRefreshing(false);
       return;
@@ -105,7 +106,7 @@ export default function ExploreScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.headerFixed}>
+      <View style={styles.headerFixed} pointerEvents="box-none">
         <StitchHeader
           variant="feed"
           onSearch={() => router.push('/(tabs)/search')}
@@ -119,15 +120,16 @@ export default function ExploreScreen() {
           styles.scrollContent,
           { paddingTop: contentTop, paddingBottom: 100 + insets.bottom },
         ]}
-        refreshControl={
+        refreshControl={stitchRefreshControl(
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => {
               setRefreshing(true);
               loadRoutes();
             }}
-          />
-        }
+          />,
+          { insetsTop: insets.top, scrollBelowHeader: false },
+        )}
       >
         {loadError ? <Text style={styles.error}>{loadError}</Text> : null}
 

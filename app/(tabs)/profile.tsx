@@ -8,7 +8,7 @@ import { LEGAL_URLS } from '@/constants/legal';
 import { useAuth } from '@/lib/auth';
 import { openOurRoutes } from '@/lib/navigation';
 import { usePlus } from '@/lib/plus';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { isSupabaseConfigured, supabaseConfigStatus } from '@/lib/supabase';
 
 const TIER_LABEL = { guest: '비회원', member: '회원', couple: '커플 회원' } as const;
 
@@ -16,6 +16,7 @@ export default function ProfileScreen() {
   const { tier, user, couple, signOut, loading } = useAuth();
   const { isPlus, openPlusInfo } = usePlus();
   const router = useRouter();
+  const supabaseStatus = supabaseConfigStatus();
 
   if (loading) return null;
 
@@ -42,8 +43,13 @@ export default function ProfileScreen() {
       </View>
 
       {!isSupabaseConfigured && (
-        <Text style={styles.warn}>Supabase 설정이 필요해요 (.env 확인)</Text>
+        <Text style={styles.warn}>
+          Supabase 미연결 — EAS 환경 변수 등록 후 preview 빌드를 다시 해주세요.
+        </Text>
       )}
+      <Text style={styles.configHint}>
+        서버: {supabaseStatus.ok ? supabaseStatus.host : '미설정'}
+      </Text>
 
       <View style={styles.actions}>
         {tier === 'guest' && (
@@ -114,6 +120,7 @@ const styles = StyleSheet.create({
   },
   plusBadgeText: { ...type.labelSm, color: colors.onSecondaryContainer },
   warn: { ...type.bodySm, color: colors.error, marginTop: spacing.sm },
+  configHint: { ...type.bodySm, color: colors.outline, marginTop: spacing.xs },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   legal: { marginTop: spacing.xl, gap: 4 },
   footerNote: { ...type.bodySm, textAlign: 'center', marginTop: spacing.md, color: colors.outline },

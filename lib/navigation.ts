@@ -1,9 +1,11 @@
 import type { Router } from 'expo-router';
 
-/** 스택에 이전 화면이 없으면 fallback으로 복귀 */
+export const HOME_HREF = '/(tabs)/explore' as const;
+
+/** 이전 화면으로 — 히스토리 없으면(강력 새로고침 등) 홈(피드)으로 */
 export function safeGoBack(
   router: Router,
-  fallbackHref: '/(tabs)/explore' | '/(tabs)/profile' = '/(tabs)/explore',
+  fallbackHref: typeof HOME_HREF | '/(tabs)/profile' = HOME_HREF,
 ) {
   if (router.canGoBack()) {
     router.back();

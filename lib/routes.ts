@@ -88,6 +88,7 @@ export type StopInput = {
   lng?: number;
   photo_path?: string;
   rating?: number;
+  memo?: string;
 };
 
 export type CreateRouteInput = {
@@ -134,10 +135,79 @@ export async function createRoute(input: CreateRouteInput) {
     lng: s.lng ?? null,
     photo_path: s.photo_path ?? null,
     rating: s.rating ?? null,
+    memo: s.memo?.trim() || null,
   }));
 
   const { error: stopsError } = await supabase.from('route_stops').insert(stopsPayload);
   if (stopsError) return { route: null, error: stopsError.message };
 
+  return { route: route as Route, error: null };
+}
+
+export async function fetchRouteThemeIds(routeId: string) {
+  const { data, error } = await supabase
+    .from('route_themes')
+    .select('theme_id')
+    .eq('route_id', routeId);
+  if (error) return { themeIds: [] as string[], error: error.message };
+  return { themeIds: (data ?? []).map((row) => row.theme_id as string), error: null };
+}
+
+export type UpdateRouteInput = {
+  routeId: string;
+  title: string;
+  description: string;
+  regionId?: string;
+  stationId?: string;
+  themeIds: string[];
+  visibility: RouteVisibility;
+  stops: StopInput[];
+};
+
+export async function updateRoute(input: UpdateRouteInput) {
+  const { error: routeError } = await supabase
+    .from('routes')
+    .update({
+      title: input.title,
+      description: input.description,
+      region_id: input.regionId ?? null,
+      station_id: input.stationId ?? null,
+      visibility: input.visibility,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', input.routeId);
+
+  if (routeError) return { route: null, error: routeError.message };
+
+  await supabase.from('route_themes').delete().eq('route_id', input.routeId);
+  if (input.themeIds.length) {
+    await supabase.from('route_themes').insert(
+      input.themeIds.map((theme_id) => ({ route_id: input.routeId, theme_id })),
+    );
+  }
+
+  await supabase.from('route_stops').delete().eq('route_id', input.routeId);
+  const stopsPayload = input.stops.map((s, i) => ({
+    route_id: input.routeId,
+    sort_order: i,
+    place_name: s.place_name,
+    address: s.address ?? null,
+    lat: s.lat ?? null,
+    lng: s.lng ?? null,
+    photo_path: s.photo_path ?? null,
+    rating: s.rating ?? null,
+    memo: s.memo?.trim() || null,
+  }));
+
+  const { error: stopsError } = await supabase.from('route_stops').insert(stopsPayload);
+  if (stopsError) return { route: null, error: stopsError.message };
+
+  const { data: route, error: fetchError } = await supabase
+    .from('routes')
+    .select('*')
+    .eq('id', input.routeId)
+    .single();
+
+  if (fetchError || !route) return { route: null, error: fetchError?.message ?? '루트 조회 실패' };
   return { route: route as Route, error: null };
 }

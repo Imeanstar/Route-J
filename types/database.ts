@@ -66,6 +66,7 @@ export type RouteStop = {
   lng: number | null;
   photo_path: string | null;
   rating: number | null;
+  memo: string | null;
   created_at: string;
 };
 

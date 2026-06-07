@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { AppIcon } from '@/components/AppIcon';
 import { BrandLogo } from '@/components/BrandLogo';
 import { colors, spacing, type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -22,10 +22,10 @@ export function AppHeader({ showLogin = true, showFeedActions }: Props) {
     right = (
       <View style={styles.actions}>
         <Pressable style={styles.iconBtn} onPress={() => router.push('/(tabs)/search')}>
-          <MaterialIcons name="search" size={24} color={colors.onSurfaceVariant} />
+          <AppIcon name="search" size={24} color={colors.onSurfaceVariant} />
         </Pressable>
         <Pressable style={styles.iconBtn}>
-          <MaterialIcons name="notifications-none" size={24} color={colors.onSurfaceVariant} />
+          <AppIcon name="notifications" size={24} color={colors.onSurfaceVariant} />
         </Pressable>
       </View>
     );

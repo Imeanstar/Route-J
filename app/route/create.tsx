@@ -10,15 +10,25 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon } from '@/components/AppIcon';
+import { PlaceSearchSheet } from '@/components/PlaceSearchSheet';
+import type { KakaoPlace } from '@/lib/kakao-places';
 import { StitchChip } from '@/components/stitch/StitchChip';
 import { StitchField } from '@/components/stitch/StitchField';
 import { StitchHeader, stitchContentTopInset } from '@/components/stitch/StitchHeader';
 import { STITCH_CREATE_UPLOAD_PREVIEW } from '@/constants/stitch-assets';
 import { colors, radius, shadow, spacing, type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { createRoute, type StopInput } from '@/lib/routes';
+import { safeGoBack } from '@/lib/navigation';
+import {
+  createRoute,
+  fetchRouteById,
+  fetchRouteStops,
+  fetchRouteThemeIds,
+  updateRoute,
+  type StopInput,
+} from '@/lib/routes';
 import { showMessage } from '@/lib/show-message';
 import { supabase } from '@/lib/supabase';
 import { pickAndUploadRoutePhoto } from '@/lib/upload-route-photo';
@@ -27,7 +37,53 @@ import type { Region, Station, Theme } from '@/types/database';
 
 type StopForm = StopInput & { id: string };
 
-export default function CreateRouteScreen() {
+function newEmptyStop(): StopForm {
+  return { id: String(Date.now()), place_name: '', address: '' };
+}
+
+function stopHasPlace(s: StopForm): boolean {
+  return Boolean(s.place_name.trim() && s.lat != null && s.lng != null);
+}
+
+/** 채워진 슬롯 + 맨 끝 빈 슬롯 최대 1개. 중간에 빈 2·3·4번 슬롯이 쌓이지 않게 */
+function normalizeStops(list: StopForm[]): StopForm[] {
+  const filled = list.filter(stopHasPlace);
+  const empties = list.filter((s) => !stopHasPlace(s));
+
+  if (filled.length === 0) {
+    return empties.length ? [{ ...empties[0] }] : [newEmptyStop()];
+  }
+
+  if (empties.length) {
+    return [...filled, { ...empties[empties.length - 1] }];
+  }
+
+  return filled;
+}
+
+function StopStarRating({
+  value,
+  onChange,
+}: {
+  value?: number;
+  onChange: (n: number | undefined) => void;
+}) {
+  return (
+    <View style={styles.starRow}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Pressable key={n} onPress={() => onChange(value === n ? undefined : n)} hitSlop={6}>
+          <Text style={[styles.star, (value ?? 0) >= n && styles.starOn]}>★</Text>
+        </Pressable>
+      ))}
+      <Text style={styles.starHint}>{value ? `${value}점` : '별점 (선택)'}</Text>
+    </View>
+  );
+}
+
+type EditorProps = { routeId?: string };
+
+export function RouteEditorScreen({ routeId }: EditorProps) {
+  const isEdit = Boolean(routeId);
   const { tier, user, couple } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -43,16 +99,64 @@ export default function CreateRouteScreen() {
   const [stops, setStops] = useState<StopForm[]>([{ id: '1', place_name: '', address: '' }]);
   const [coverPreviewUri, setCoverPreviewUri] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [placeSearchStopId, setPlaceSearchStopId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(isEdit);
   const contentTop = stitchContentTopInset(insets.top);
 
   useEffect(() => {
     if (tier !== 'couple') {
       Alert.alert('커플 연결 필요', '루트 작성은 커플 연결 후 가능합니다.', [
-        { text: '확인', onPress: () => router.back() },
+        { text: '확인', onPress: () => safeGoBack(router) },
       ]);
     }
   }, [tier, router]);
+
+  useEffect(() => {
+    if (!isEdit) setStops((prev) => normalizeStops(prev));
+  }, [isEdit]);
+
+  useEffect(() => {
+    if (!routeId || !couple) return;
+    (async () => {
+      setLoadingEdit(true);
+      const [{ route }, { stops: existingStops }, { themeIds: existingThemes }] = await Promise.all([
+        fetchRouteById(routeId),
+        fetchRouteStops(routeId),
+        fetchRouteThemeIds(routeId),
+      ]);
+
+      if (!route || route.couple_id !== couple.id) {
+        Alert.alert('수정 불가', '우리 커플이 만든 루트만 수정할 수 있어요.', [
+          { text: '확인', onPress: () => safeGoBack(router) },
+        ]);
+        setLoadingEdit(false);
+        return;
+      }
+
+      setTitle(route.title);
+      setDescription(route.description ?? '');
+      setVisibility(route.visibility === 'couple_only' ? 'couple_only' : 'public');
+      setRegionId(route.region_id ?? undefined);
+      setStationId(route.station_id ?? undefined);
+      setThemeIds(existingThemes);
+      setStops(
+        existingStops.map((s) => ({
+          id: s.id,
+          place_name: s.place_name,
+          address: s.address ?? '',
+          lat: s.lat ?? undefined,
+          lng: s.lng ?? undefined,
+          photo_path: s.photo_path ?? undefined,
+          rating: s.rating ?? undefined,
+          memo: s.memo ?? undefined,
+        })),
+      );
+      const firstPhoto = existingStops[0]?.photo_path;
+      setCoverPreviewUri(firstPhoto ? (routePhotoUrl(firstPhoto) ?? null) : null);
+      setLoadingEdit(false);
+    })();
+  }, [routeId, couple, router]);
 
   useEffect(() => {
     (async () => {
@@ -67,12 +171,44 @@ export default function CreateRouteScreen() {
     })();
   }, []);
 
+  const syncCoverFromStops = (list: StopForm[]) => {
+    const first = list.find(stopHasPlace);
+    setCoverPreviewUri(first ? (routePhotoUrl(first.photo_path) ?? null) : null);
+  };
+
   const addStop = () => {
-    setStops((prev) => [...prev, { id: String(Date.now()), place_name: '', address: '' }]);
+    setStops((prev) => {
+      const list = normalizeStops(prev);
+      const draft = list.find((s) => !stopHasPlace(s));
+      if (draft) {
+        setPlaceSearchStopId(draft.id);
+        return list;
+      }
+      const next = newEmptyStop();
+      setPlaceSearchStopId(next.id);
+      return [...list, next];
+    });
   };
 
   const removeStop = (id: string) => {
-    setStops((prev) => (prev.length > 1 ? prev.filter((s) => s.id !== id) : prev));
+    setStops((prev) => {
+      const target = prev.find((s) => s.id === id);
+      if (!target) return prev;
+
+      if (!stopHasPlace(target)) {
+        const filled = prev.filter(stopHasPlace);
+        if (filled.length === 0) {
+          return [{ id: target.id, place_name: '', address: '' }];
+        }
+        const next = normalizeStops(prev.filter((s) => s.id !== id));
+        syncCoverFromStops(next);
+        return next;
+      }
+
+      const next = normalizeStops(prev.filter((s) => s.id !== id));
+      syncCoverFromStops(next);
+      return next;
+    });
   };
 
   const updateStop = (id: string, patch: Partial<StopForm>) => {
@@ -111,13 +247,43 @@ export default function CreateRouteScreen() {
       Alert.alert('제목을 입력해주세요');
       return;
     }
-    const validStops = stops.filter((s) => s.place_name.trim());
+    const validStops = stops.filter(stopHasPlace);
     if (!validStops.length) {
-      Alert.alert('장소를 1개 이상 추가해주세요');
+      Alert.alert('장소를 1개 이상 추가해주세요', '장소 검색으로 코스 경로를 설정해 주세요.');
       return;
     }
 
+    const stopPayload = validStops.map(({ place_name, address, lat, lng, photo_path, rating, memo }) => ({
+      place_name: place_name.trim(),
+      address: address?.trim(),
+      lat,
+      lng,
+      photo_path,
+      rating,
+      memo: memo?.trim(),
+    }));
+
     setBusy(true);
+    if (isEdit && routeId) {
+      const { route, error } = await updateRoute({
+        routeId,
+        title: title.trim(),
+        description: description.trim(),
+        regionId,
+        stationId,
+        themeIds,
+        visibility,
+        stops: stopPayload,
+      });
+      setBusy(false);
+      if (error) Alert.alert('저장 실패', error);
+      else {
+        Alert.alert('수정 완료', '코스가 업데이트되었습니다.');
+        router.replace(`/route/${route!.id}`);
+      }
+      return;
+    }
+
     const { route, error } = await createRoute({
       coupleId: couple.id,
       userId: user.id,
@@ -127,14 +293,7 @@ export default function CreateRouteScreen() {
       stationId,
       themeIds,
       visibility,
-      stops: validStops.map(({ place_name, address, lat, lng, photo_path, rating }) => ({
-        place_name: place_name.trim(),
-        address: address?.trim(),
-        lat,
-        lng,
-        photo_path,
-        rating,
-      })),
+      stops: stopPayload,
     });
     setBusy(false);
 
@@ -147,14 +306,52 @@ export default function CreateRouteScreen() {
 
   const filteredStations = regionId ? stations.filter((s) => s.region_id === regionId) : [];
   const coverUri = coverPreviewUri ?? routePhotoUrl(stops[0]?.photo_path);
+  const displayStops = normalizeStops(stops);
+  const placeSearchIndex = placeSearchStopId
+    ? Math.max(0, displayStops.findIndex((s) => s.id === placeSearchStopId))
+    : 0;
+
+  const applyPlace = (stopId: string, place: KakaoPlace) => {
+    setStops((prev) =>
+      normalizeStops(
+        prev.map((s) =>
+          s.id === stopId
+            ? {
+                ...s,
+                place_name: place.place_name,
+                address: place.address,
+                lat: place.lat,
+                lng: place.lng,
+              }
+            : s,
+        ),
+      ),
+    );
+  };
+
+  if (loadingEdit) {
+    return (
+      <View style={styles.loadingWrap}>
+        <Text style={type.bodySm}>불러오는 중…</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
-      <View style={styles.headerFixed}>
+      <PlaceSearchSheet
+        visible={placeSearchStopId !== null}
+        stopIndex={placeSearchIndex}
+        onClose={() => setPlaceSearchStopId(null)}
+        onSelect={(place) => {
+          if (placeSearchStopId) applyPlace(placeSearchStopId, place);
+        }}
+      />
+      <View style={styles.headerFixed} pointerEvents="box-none">
         <StitchHeader
           variant="back"
-          title="새로운 데이트 코스 등록"
-          onBack={() => router.back()}
+          title={isEdit ? '데이트 코스 수정' : '새로운 데이트 코스 등록'}
+          onBack={() => safeGoBack(router)}
         />
       </View>
 
@@ -180,41 +377,51 @@ export default function CreateRouteScreen() {
         />
 
         <Text style={type.labelMd}>대표 이미지</Text>
-        <Pressable
-          style={[styles.uploadBox, photoUploading && { opacity: 0.6 }]}
-          onPress={pickCoverPhoto}
-          disabled={photoUploading}
-          accessibilityRole="button"
-          accessibilityLabel="대표 이미지 업로드"
-        >
-          {coverUri ? (
-            <Image source={{ uri: coverUri }} style={styles.uploadPreviewFilled} />
-          ) : (
-            <Image source={{ uri: STITCH_CREATE_UPLOAD_PREVIEW }} style={styles.uploadPreview} />
-          )}
-          <View style={[styles.uploadOverlay, coverUri && styles.uploadOverlayDim]}>
-            <MaterialIcons name="add-photo-alternate" size={40} color={colors.outline} />
-            <Text style={[type.labelMd, { color: colors.outline }]}>
-              {photoUploading ? '업로드 중…' : '이미지 업로드 (권장 16:9)'}
-            </Text>
-          </View>
-        </Pressable>
+        <View style={styles.uploadOuter}>
+          <Pressable
+            style={[styles.uploadBox, photoUploading && { opacity: 0.6 }]}
+            onPress={pickCoverPhoto}
+            disabled={photoUploading}
+            accessibilityRole="button"
+            accessibilityLabel="대표 이미지 업로드"
+          >
+            {coverUri ? (
+              <Image source={{ uri: coverUri }} style={styles.uploadPreviewFilled} resizeMode="cover" />
+            ) : (
+              <Image
+                source={{ uri: STITCH_CREATE_UPLOAD_PREVIEW }}
+                style={styles.uploadPreview}
+                resizeMode="cover"
+              />
+            )}
+            <View style={[styles.uploadOverlay, coverUri && styles.uploadOverlayDim]}>
+              <AppIcon name="image-add" size={40} color={colors.outline} />
+              <Text style={[type.labelMd, styles.uploadLabel]}>
+                {photoUploading ? '업로드 중…' : '탭하여 사진 추가'}
+              </Text>
+            </View>
+          </Pressable>
+        </View>
 
         <View style={styles.metaGrid}>
           <View style={styles.metaCol}>
             <Text style={type.labelMd}>지역 선택</Text>
             <View style={[styles.chipWrap, { marginTop: 8 }]}>
-              {regions.map((r) => (
-                <StitchChip
-                  key={r.id}
-                  label={r.name}
-                  active={regionId === r.id}
-                  onPress={() => {
-                    setRegionId(regionId === r.id ? undefined : r.id);
-                    setStationId(undefined);
-                  }}
-                />
-              ))}
+              {regions.length === 0 ? (
+                <Text style={type.bodySm}>지역 목록을 불러오는 중…</Text>
+              ) : (
+                regions.map((r) => (
+                  <StitchChip
+                    key={r.id}
+                    label={r.name}
+                    active={regionId === r.id}
+                    onPress={() => {
+                      setRegionId(regionId === r.id ? undefined : r.id);
+                      setStationId(undefined);
+                    }}
+                  />
+                ))
+              )}
             </View>
           </View>
         </View>
@@ -234,6 +441,9 @@ export default function CreateRouteScreen() {
 
         <Text style={[type.labelMd, styles.sectionGap]}>테마 선택</Text>
         <View style={styles.chipWrap}>
+          {themes.length === 0 ? (
+            <Text style={type.bodySm}>테마 목록을 불러오는 중…</Text>
+          ) : null}
           {themes.map((t) => {
             const on = themeIds.includes(t.id);
             return (
@@ -253,50 +463,83 @@ export default function CreateRouteScreen() {
         <View style={styles.stopsHeader}>
           <Text style={type.labelMd}>코스 경로 설정</Text>
           <Pressable style={styles.addLink} onPress={addStop}>
-            <MaterialIcons name="add-circle" size={22} color={colors.primary} />
+            <AppIcon name="add" size={22} color={colors.primary} />
             <Text style={[type.labelMd, { color: colors.primary }]}>장소 추가</Text>
           </Pressable>
         </View>
 
         <View style={styles.stopsList}>
-          {stops.map((stop, index) => (
-            <View key={stop.id} style={[styles.stopCard, shadow.soft]}>
-              <View style={styles.stopNum}>
-                <Text style={styles.stopNumText}>{index + 1}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={styles.stopTitleRow}>
-                  <TextInput
-                    style={[styles.stopInput, { flex: 1 }]}
-                    placeholder="장소 이름"
-                    placeholderTextColor={colors.outline}
-                    value={stop.place_name}
-                    onChangeText={(v) => updateStop(stop.id, { place_name: v })}
-                  />
-                  <Pressable onPress={() => removeStop(stop.id)}>
-                    <MaterialIcons name="delete-outline" size={22} color={colors.outline} />
-                  </Pressable>
+          {displayStops.map((stop, index) => {
+            const hasPlace = stopHasPlace(stop);
+            const thumbUri = routePhotoUrl(stop.photo_path);
+            return (
+              <View key={stop.id} style={[styles.stopCard, shadow.soft]}>
+                <View style={styles.stopNum}>
+                  <Text style={styles.stopNumText}>{index + 1}</Text>
                 </View>
-                <TextInput
-                  style={styles.stopInput}
-                  placeholder="주소 (선택)"
-                  placeholderTextColor={colors.outline}
-                  value={stop.address ?? ''}
-                  onChangeText={(v) => updateStop(stop.id, { address: v })}
-                />
-                <Pressable
-                  style={styles.photoBtn}
-                  onPress={() => pickStopPhoto(stop.id)}
-                  disabled={photoUploading}
-                >
-                  <MaterialIcons name="photo-camera" size={18} color={colors.primary} />
-                  <Text style={type.labelSm}>
-                    {stop.photo_path ? '사진 변경' : '사진'}
-                  </Text>
-                </Pressable>
+                <View style={styles.stopBody}>
+                  <View style={styles.stopTopRow}>
+                    <Pressable
+                      style={styles.placePick}
+                      onPress={() => setPlaceSearchStopId(stop.id)}
+                    >
+                      <Text
+                        style={hasPlace ? styles.placeName : styles.placePlaceholder}
+                        numberOfLines={2}
+                      >
+                        {hasPlace ? stop.place_name : '탭하여 장소 추가'}
+                      </Text>
+                      <AppIcon name="search" size={18} color={colors.primary} />
+                    </Pressable>
+                    <Pressable
+                      style={styles.deleteBtn}
+                      onPress={() => removeStop(stop.id)}
+                      hitSlop={12}
+                      accessibilityRole="button"
+                      accessibilityLabel={hasPlace ? '장소 삭제' : '슬롯 닫기'}
+                    >
+                      <AppIcon name="delete" size={22} color={colors.outline} />
+                    </Pressable>
+                  </View>
+                  {hasPlace ? (
+                    <View style={styles.stopExtras}>
+                      <Pressable
+                        style={styles.extraPhotoBtn}
+                        onPress={() => pickStopPhoto(stop.id)}
+                        disabled={photoUploading}
+                      >
+                        {thumbUri ? (
+                          <Image source={{ uri: thumbUri }} style={styles.extraThumb} />
+                        ) : (
+                          <View style={styles.extraThumbEmpty}>
+                            <AppIcon name="camera" size={18} color={colors.primary} />
+                          </View>
+                        )}
+                        <Text style={styles.extraBtnLabel}>
+                          {thumbUri ? '사진 변경' : '사진 추가'}
+                        </Text>
+                      </Pressable>
+                      <View style={styles.extraRating}>
+                        <Text style={styles.extraLabel}>별점 주기</Text>
+                        <StopStarRating
+                          value={stop.rating}
+                          onChange={(rating) => updateStop(stop.id, { rating })}
+                        />
+                      </View>
+                      <TextInput
+                        style={styles.memoInput}
+                        placeholder="이 장소 한줄 평 (선택)"
+                        placeholderTextColor={colors.outline}
+                        value={stop.memo ?? ''}
+                        onChangeText={(v) => updateStop(stop.id, { memo: v })}
+                        multiline
+                      />
+                    </View>
+                  ) : null}
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         <View style={[styles.chipWrap, { marginTop: spacing.md }]}>
@@ -318,12 +561,14 @@ export default function CreateRouteScreen() {
           disabled={busy}
         >
           <Text style={[type.button, { color: colors.onSurface, fontSize: 18 }]}>
-            {busy ? '저장 중…' : '코스 공개하기'}
+            {busy ? '저장 중…' : isEdit ? '변경사항 저장' : '코스 공개하기'}
           </Text>
         </Pressable>
-        <Text style={[type.bodySm, styles.footerNote]}>
-          작성하신 코스는 RouteJ 사용자들에게 공개됩니다.
-        </Text>
+        {!isEdit ? (
+          <Text style={[type.bodySm, styles.footerNote]}>
+            작성하신 코스는 RouteJ 사용자들에게 공개됩니다.
+          </Text>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -335,20 +580,24 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: {
     paddingHorizontal: spacing.gutter,
-    maxWidth: 640,
-    alignSelf: 'center',
     width: '100%',
   },
-  uploadBox: {
-    aspectRatio: 16 / 9,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
+  uploadOuter: {
+    width: '100%',
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
+  },
+  uploadBox: {
+    width: '100%',
+    height: 200,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: colors.outlineVariant,
+    backgroundColor: colors.surfaceContainerLow,
   },
+  uploadLabel: { color: colors.outline, textAlign: 'center' },
   uploadPreview: { width: '100%', height: '100%', opacity: 0.15 },
   uploadPreviewFilled: { width: '100%', height: '100%' },
   uploadOverlay: {
@@ -390,15 +639,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stopNumText: { fontWeight: '700', color: colors.onPrimaryContainer, fontSize: 18 },
-  stopTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  photoBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  stopInput: {
-    ...type.body,
+  stopBody: { flex: 1, minWidth: 0 },
+  stopTopRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  placePick: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     backgroundColor: colors.subtleGray,
     borderRadius: radius.md,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
+    paddingVertical: 12,
+    minWidth: 0,
+  },
+  placeName: { ...type.labelMd, flex: 1, color: colors.onSurface },
+  placePlaceholder: { ...type.bodySm, flex: 1, color: colors.outline },
+  deleteBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stopExtras: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.outlineVariant,
+    gap: spacing.sm,
+  },
+  extraPhotoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.primaryContainer,
+  },
+  extraThumb: { width: 40, height: 40, borderRadius: radius.sm },
+  extraThumbEmpty: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  extraBtnLabel: { ...type.labelSm, color: colors.primary },
+  extraRating: { gap: 4 },
+  extraLabel: { ...type.labelSm, color: colors.outline },
+  starRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  star: { fontSize: 22, color: colors.outlineVariant, paddingHorizontal: 2 },
+  starOn: { color: colors.warning },
+  starHint: { ...type.labelSm, color: colors.outline, marginLeft: 6 },
+  memoInput: {
+    ...type.bodySm,
+    backgroundColor: colors.subtleGray,
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 40,
+    textAlignVertical: 'top',
   },
   submit: {
     marginTop: spacing.xl,
@@ -409,4 +711,9 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   footerNote: { textAlign: 'center', marginTop: spacing.md, marginBottom: spacing.lg },
+  loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
+
+export default function CreateRouteScreen() {
+  return <RouteEditorScreen />;
+}

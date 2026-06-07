@@ -56,7 +56,14 @@ npx eas-cli build --profile preview --platform ios
 
 ## 환경 변수
 
-EAS Build는 **클라우드 빌드**이므로 `.env` 는 로컬에만 있으면 앱에 안 들어갑니다. Supabase URL/anon key 는 EAS 대시보드 → Project → **Environment variables** 에 `EXPO_PUBLIC_*` 로 등록하거나 `eas secret:create` 사용.
+EAS Build는 **클라우드 빌드**이므로 `.env` 는 로컬에만 있으면 앱에 안 들어갑니다.
+
+1. EAS 대시보드 → **Environment variables**
+2. `EXPO_PUBLIC_SUPABASE_URL` · `EXPO_PUBLIC_SUPABASE_ANON_KEY` — 둘 다 **Sensitive**, **preview** 체크
+3. `eas.json` 의 `preview` 프로필에 `"environment": "preview"` (저장소에 반영됨)
+4. 빌드 로그에 변수가 잡혔는지 확인 — 예전에 `No environment variables ... preview` 가 나왔다면 그 빌드 APK에는 값이 없음
+
+앱 **프로필** 하단 `서버: mzqlnhvanubhkixggpvh.supabase.co` → 정상. `서버: 미설정` → 환경 변수 미주입, **재빌드** 필요.
 
 ## 로그인
 

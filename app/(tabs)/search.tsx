@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StitchFeedCard } from '@/components/stitch/StitchFeedCard';
@@ -29,15 +29,11 @@ import { PartnerBenefitRow } from '@/components/PartnerBenefitRow';
 import { colors, radius, shadow, spacing, type } from '@/constants/theme';
 import { fetchPartnerBenefits, type PartnerBenefit } from '@/lib/partners';
 import { usePlus } from '@/lib/plus';
-import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { EAS_SUPABASE_SETUP_HINT, isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { Region, Route, Theme } from '@/types/database';
 
-const THEME_ICONS: {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  color: string;
-  bg: string;
-}[] = [
-  { icon: 'local-cafe', color: colors.primary, bg: `${colors.primaryContainer}4D` },
+const THEME_ICONS: { icon: AppIconName; color: string; bg: string }[] = [
+  { icon: 'cafe', color: colors.primary, bg: `${colors.primaryContainer}4D` },
   { icon: 'restaurant', color: colors.secondary, bg: `${colors.secondaryContainer}4D` },
   { icon: 'park', color: colors.onSurfaceVariant, bg: colors.surfaceContainerHigh },
   { icon: 'museum', color: colors.tertiary, bg: colors.tertiaryContainer },
@@ -88,7 +84,7 @@ export default function SearchScreen() {
       Keyboard.dismiss();
       setSubmittedQuery(q);
       if (!isSupabaseConfigured) {
-        setSearchError('Supabase 연결이 필요해요.');
+        setSearchError(EAS_SUPABASE_SETUP_HINT);
         setSearchResults([]);
         return;
       }
@@ -121,7 +117,7 @@ export default function SearchScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.searchBox}>
-          <MaterialIcons name="search" size={22} color={colors.outline} />
+          <AppIcon name="search" size={22} color={colors.outline} />
           <TextInput
             style={styles.searchInput}
             placeholder="지역이나 테마를 검색하세요"
@@ -132,7 +128,7 @@ export default function SearchScreen() {
             returnKeyType="search"
             blurOnSubmit
           />
-          <MaterialIcons name="mic" size={22} color={colors.outline} />
+          <AppIcon name="mic" size={22} color={colors.outline} />
         </View>
 
         {submittedQuery ? (
@@ -207,13 +203,13 @@ export default function SearchScreen() {
             </Pressable>
           ))}
           <Pressable style={styles.regionMore} onPress={() => router.push('/(tabs)/explore')}>
-            <MaterialIcons name="add-location" size={36} color={colors.onSecondaryContainer} />
+            <AppIcon name="add-location" size={36} color={colors.onSecondaryContainer} />
             <Text style={[type.labelMd, { color: colors.onSecondaryContainer }]}>전체보기</Text>
           </Pressable>
         </View>
 
         <View style={styles.hotHead}>
-          <MaterialIcons name="stars" size={22} color={colors.primary} />
+          <AppIcon name="star" size={22} color={colors.primary} />
           <Text style={type.headlineSm}>이번 주 인기 지역: 성수동</Text>
         </View>
         <Pressable style={styles.hotCard} onPress={() => goExplore({ search: '성수' })}>
@@ -260,7 +256,7 @@ export default function SearchScreen() {
                 onPress={() => goExplore({ themeId: t.id })}
               >
                 <View style={[styles.themeIcon, { backgroundColor: meta.bg }]}>
-                  <MaterialIcons name={meta.icon} size={28} color={meta.color} />
+                  <AppIcon name={meta.icon} size={28} color={meta.color} />
                 </View>
                 <Text style={type.labelMd}>{t.name}</Text>
               </Pressable>

@@ -1,5 +1,5 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet } from 'react-native';
+import { AppIcon } from '@/components/AppIcon';
 import { colors } from '@/constants/theme';
 
 type Props = { bottom: number; onPress: () => void };
@@ -7,7 +7,7 @@ type Props = { bottom: number; onPress: () => void };
 export function StitchFab({ bottom, onPress }: Props) {
   return (
     <Pressable style={[styles.fab, { bottom }]} onPress={onPress}>
-      <MaterialIcons name="edit" size={28} color={colors.onPrimary} />
+      <AppIcon name="edit" size={28} color={colors.onPrimary} />
     </Pressable>
   );
 }

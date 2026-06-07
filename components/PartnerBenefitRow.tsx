@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { AppIcon } from '@/components/AppIcon';
 import { colors, radius, shadow, spacing, type } from '@/constants/theme';
 import type { PartnerBenefit } from '@/lib/partners';
 
@@ -17,7 +17,7 @@ export function PartnerBenefitRow({ benefit, isPlus, onRedeem }: Props) {
       disabled={benefit.plus_only && !isPlus}
     >
       <View style={styles.icon}>
-        <MaterialIcons name="local-offer" size={22} color={colors.primary} />
+        <AppIcon name="offer" size={22} color={colors.primary} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={type.labelMd}>{benefit.venue_name ?? benefit.title}</Text>

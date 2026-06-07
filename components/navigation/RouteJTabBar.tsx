@@ -1,16 +1,16 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { colors, type } from '@/constants/theme';
 
-const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
+const TAB_ICONS: Record<string, AppIconName> = {
   explore: 'home',
   search: 'search',
-  create: 'add-circle-outline',
-  profile: 'person-outline',
+  create: 'add',
+  profile: 'person',
 };
 
 function isTabVisible(
@@ -49,7 +49,7 @@ export function RouteJTabBar({ state, descriptors, navigation }: BottomTabBarPro
                 ? options.title
                 : route.name;
           const tint = focused ? colors.primary : colors.outline;
-          const iconName = TAB_ICONS[route.name] ?? 'circle';
+          const iconName = TAB_ICONS[route.name] ?? 'home';
 
           const onPress = () => {
             if (route.name === 'create') {
@@ -78,7 +78,7 @@ export function RouteJTabBar({ state, descriptors, navigation }: BottomTabBarPro
               style={styles.tab}
             >
               <View style={styles.tabInner}>
-                <MaterialIcons name={iconName} size={24} color={tint} />
+                <AppIcon name={iconName} size={24} color={tint} filled={focused} />
                 <Text style={[styles.label, { color: tint }]} numberOfLines={1}>
                   {label}
                 </Text>

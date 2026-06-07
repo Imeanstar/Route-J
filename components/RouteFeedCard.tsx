@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { AppIcon } from '@/components/AppIcon';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, FEED_PLACEHOLDERS, radius, shadow, spacing, type } from '@/constants/theme';
@@ -55,7 +55,7 @@ export function RouteFeedCard({ route, imageUri, stopCount, onPress }: Props) {
         <View style={styles.footer}>
           <View style={styles.author}>
             <View style={styles.avatar}>
-              <MaterialIcons name="person" size={16} color={colors.onPrimaryContainer} />
+              <AppIcon name="person" size={16} color={colors.onPrimaryContainer} />
             </View>
             <Text style={type.labelMd}>RouteJ</Text>
           </View>

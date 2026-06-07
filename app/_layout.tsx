@@ -54,6 +54,7 @@ export default function RootLayout() {
             presentation: 'modal',
           }}
         />
+        <Stack.Screen name="route/edit/[id]" options={{ headerShown: false }} />
       </Stack>
     </AuthProvider>
   );
