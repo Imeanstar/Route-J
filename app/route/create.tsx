@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components/AppIcon';
+import { StarRatingInput } from '@/components/StarRating';
 import { PlaceSearchSheet } from '@/components/PlaceSearchSheet';
 import type { KakaoPlace } from '@/lib/kakao-places';
 import { StitchChip } from '@/components/stitch/StitchChip';
@@ -20,7 +21,7 @@ import { StitchHeader, stitchContentTopInset } from '@/components/stitch/StitchH
 import { STITCH_CREATE_UPLOAD_PREVIEW } from '@/constants/stitch-assets';
 import { colors, radius, shadow, spacing, type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { safeGoBack } from '@/lib/navigation';
+import { canCreateRoute, safeGoBack } from '@/lib/navigation';
 import {
   createRoute,
   fetchRouteById,
@@ -61,30 +62,11 @@ function normalizeStops(list: StopForm[]): StopForm[] {
   return filled;
 }
 
-function StopStarRating({
-  value,
-  onChange,
-}: {
-  value?: number;
-  onChange: (n: number | undefined) => void;
-}) {
-  return (
-    <View style={styles.starRow}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Pressable key={n} onPress={() => onChange(value === n ? undefined : n)} hitSlop={6}>
-          <Text style={[styles.star, (value ?? 0) >= n && styles.starOn]}>★</Text>
-        </Pressable>
-      ))}
-      <Text style={styles.starHint}>{value ? `${value}점` : '별점 (선택)'}</Text>
-    </View>
-  );
-}
-
 type EditorProps = { routeId?: string };
 
 export function RouteEditorScreen({ routeId }: EditorProps) {
   const isEdit = Boolean(routeId);
-  const { tier, user, couple } = useAuth();
+  const { tier, user, couple, loading: authLoading } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
@@ -105,12 +87,11 @@ export function RouteEditorScreen({ routeId }: EditorProps) {
   const contentTop = stitchContentTopInset(insets.top);
 
   useEffect(() => {
-    if (tier !== 'couple') {
-      Alert.alert('커플 연결 필요', '루트 작성은 커플 연결 후 가능합니다.', [
-        { text: '확인', onPress: () => safeGoBack(router) },
-      ]);
+    if (authLoading || isEdit) return;
+    if (!canCreateRoute(tier)) {
+      router.replace('/(tabs)/create');
     }
-  }, [tier, router]);
+  }, [authLoading, tier, router, isEdit]);
 
   useEffect(() => {
     if (!isEdit) setStops((prev) => normalizeStops(prev));
@@ -329,7 +310,7 @@ export function RouteEditorScreen({ routeId }: EditorProps) {
     );
   };
 
-  if (loadingEdit) {
+  if (authLoading || loadingEdit || (!isEdit && !canCreateRoute(tier))) {
     return (
       <View style={styles.loadingWrap}>
         <Text style={type.bodySm}>불러오는 중…</Text>
@@ -521,7 +502,7 @@ export function RouteEditorScreen({ routeId }: EditorProps) {
                       </Pressable>
                       <View style={styles.extraRating}>
                         <Text style={styles.extraLabel}>별점 주기</Text>
-                        <StopStarRating
+                        <StarRatingInput
                           value={stop.rating}
                           onChange={(rating) => updateStop(stop.id, { rating })}
                         />
@@ -689,10 +670,6 @@ const styles = StyleSheet.create({
   extraBtnLabel: { ...type.labelSm, color: colors.primary },
   extraRating: { gap: 4 },
   extraLabel: { ...type.labelSm, color: colors.outline },
-  starRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  star: { fontSize: 22, color: colors.outlineVariant, paddingHorizontal: 2 },
-  starOn: { color: colors.warning },
-  starHint: { ...type.labelSm, color: colors.outline, marginLeft: 6 },
   memoInput: {
     ...type.bodySm,
     backgroundColor: colors.subtleGray,

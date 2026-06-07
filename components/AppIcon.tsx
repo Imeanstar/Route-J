@@ -47,7 +47,7 @@ const ICONS: Record<AppIconName, { outline: IonName; filled?: IonName }> = {
   offer: { outline: 'pricetag-outline' },
   mic: { outline: 'mic-outline' },
   'add-location': { outline: 'add-circle-outline' },
-  star: { outline: 'star' },
+  star: { outline: 'star-outline', filled: 'star' },
   cafe: { outline: 'cafe-outline' },
   restaurant: { outline: 'restaurant-outline' },
   park: { outline: 'leaf-outline' },

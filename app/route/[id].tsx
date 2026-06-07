@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Linking,
@@ -12,6 +13,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AppIcon } from '@/components/AppIcon';
+import { LikeCount } from '@/components/LikeCount';
+import { StarRatingDisplay } from '@/components/StarRating';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StitchHeader, stitchHeaderHeight } from '@/components/stitch/StitchHeader';
@@ -29,7 +32,7 @@ import {
   toggleLike,
   updateRouteVisibility,
 } from '@/lib/routes';
-import { kakaoMapRouteUrl } from '@/lib/kakao';
+import { kakaoMapRouteUrl } from '@/lib/kakao-map-link';
 import { safeGoBack } from '@/lib/navigation';
 import { fetchPartnerBenefits, type PartnerBenefit } from '@/lib/partners';
 import { routePhotoUrl } from '@/lib/photos';
@@ -167,6 +170,7 @@ export default function RouteDetailScreen() {
   if (!route) {
     return (
       <View style={styles.loadingWrap}>
+        <ActivityIndicator color={colors.primary} />
         <Text style={type.bodySm}>불러오는 중…</Text>
       </View>
     );
@@ -253,9 +257,18 @@ export default function RouteDetailScreen() {
               </View>
               <View>
                 <Text style={type.labelMd}>RouteJ Couple</Text>
-                <Text style={[type.labelSm, { color: colors.outline }]}>
-                  ♥ {route.like_count} · 조회 {route.view_count}
-                </Text>
+                <View style={styles.metaRow}>
+                  <LikeCount
+                    count={route.like_count}
+                    color={colors.outline}
+                    iconSize={11}
+                    textStyle={type.labelSm}
+                  />
+                  <Text style={[type.labelSm, { color: colors.outline }]}>
+                    {' · 조회 '}
+                    {route.view_count}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -291,9 +304,9 @@ export default function RouteDetailScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={type.labelMd}>{stop.place_name}</Text>
                   {stop.rating != null && (
-                    <Text style={{ color: colors.warning, marginTop: 4, fontSize: 13 }}>
-                      {'★'.repeat(stop.rating)}{'☆'.repeat(5 - stop.rating)} ({stop.rating})
-                    </Text>
+                    <View style={{ marginTop: 4 }}>
+                      <StarRatingDisplay rating={stop.rating} showValue />
+                    </View>
                   )}
                   {stop.memo ? (
                     <Text style={[type.bodySm, { marginTop: 4, color: colors.onSurfaceVariant }]} numberOfLines={3}>
@@ -355,7 +368,13 @@ const styles = StyleSheet.create({
     elevation: 50,
   },
   scroll: { flex: 1 },
-  loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.background,
+  },
   heroWrap: { height: 320, position: 'relative' },
   heroImage: { width: '100%', height: '100%' },
   content: { paddingHorizontal: spacing.gutter, maxWidth: 1200, alignSelf: 'center', width: '100%' },
@@ -374,6 +393,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
   },
+  metaRow: { flexDirection: 'row', alignItems: 'center' },
   authorRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,14 +1,13 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { showMessage } from '@/lib/show-message';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StitchButton } from '@/components/stitch/StitchButton';
 import { StitchField } from '@/components/stitch/StitchField';
 import { StitchLogo } from '@/components/stitch/StitchLogo';
 import { StitchScreen } from '@/components/stitch/StitchScreen';
 import { colors, spacing, type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
-import { signInWithKakao } from '@/lib/kakao';
 import { safeGoBack } from '@/lib/navigation';
 import { EAS_SUPABASE_SETUP_HINT, isSupabaseConfigured } from '@/lib/supabase';
 
@@ -18,6 +17,14 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      safeGoBack(router, '/(tabs)/profile');
+      return true;
+    });
+    return () => sub.remove();
+  }, [router]);
 
   const onSubmit = async () => {
     if (!isSupabaseConfigured) {
@@ -41,10 +48,18 @@ export default function LoginScreen() {
   };
 
   const onKakao = async () => {
+    if (!isSupabaseConfigured) {
+      showMessage('설정 필요', EAS_SUPABASE_SETUP_HINT);
+      return;
+    }
     setBusy(true);
-    const { error } = await signInWithKakao();
+    const { signInWithKakao } = await import('@/lib/kakao-auth');
+    const { error, cancelled } = await signInWithKakao();
     setBusy(false);
     if (error) showMessage('카카오 로그인', error);
+    else if (!cancelled && Platform.OS !== 'web') {
+      safeGoBack(router, '/(tabs)/profile');
+    }
   };
 
   return (
@@ -81,12 +96,15 @@ export default function LoginScreen() {
           style={styles.kakaoBtn}
         />
       </View>
-      <Link href="/auth/sign-up" style={styles.link}>
+      <Pressable onPress={() => router.push('/auth/sign-up')} style={styles.link}>
         <Text style={styles.linkText}>회원가입</Text>
-      </Link>
-      <Text style={styles.note}>
-        카카오는 Supabase Auth에 Kakao Provider를 연결하면 동작합니다.
-      </Text>
+      </Pressable>
+      {__DEV__ ? (
+        <Text style={styles.note}>
+          개발 시 콘솔에 [Kakao OAuth] redirectTo 가 출력됩니다. Supabase Redirect URLs에 등록하세요.
+          (docs/KAKAO_LOGIN.md)
+        </Text>
+      ) : null}
     </StitchScreen>
   );
 }

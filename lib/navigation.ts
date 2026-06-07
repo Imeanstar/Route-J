@@ -1,6 +1,21 @@
 import type { Router } from 'expo-router';
+import type { UserTier } from '@/types/database';
 
 export const HOME_HREF = '/(tabs)/explore' as const;
+
+/** 커플만 등록 화면 — 그 외는 만들기 탭(모달)으로 */
+export function openRouteCreate(router: Router, tier: UserTier): boolean {
+  if (tier === 'couple') {
+    router.push('/route/create');
+    return true;
+  }
+  router.push('/(tabs)/create');
+  return false;
+}
+
+export function canCreateRoute(tier: UserTier): boolean {
+  return tier === 'couple';
+}
 
 /** 이전 화면으로 — 히스토리 없으면(강력 새로고침 등) 홈(피드)으로 */
 export function safeGoBack(

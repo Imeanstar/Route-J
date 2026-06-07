@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StitchButton } from '@/components/stitch/StitchButton';
 import { StitchLogo } from '@/components/stitch/StitchLogo';
@@ -18,7 +18,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const supabaseStatus = supabaseConfigStatus();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <StitchScreen header={{ variant: 'brand' }}>
@@ -99,6 +105,12 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
   card: {
     marginTop: spacing.md,
     backgroundColor: colors.surface,

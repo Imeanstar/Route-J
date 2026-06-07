@@ -1,6 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import Constants from 'expo-constants';
 import { createClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 import { createAuthStorage } from '@/lib/auth-storage';
 
 export const EAS_SUPABASE_SETUP_HINT =
@@ -32,7 +33,7 @@ export const supabase = createClient(url || 'https://placeholder.supabase.co', a
     storage: createAuthStorage(),
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
 

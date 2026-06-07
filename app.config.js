@@ -1,8 +1,7 @@
-import type { ExpoConfig } from 'expo/config';
-import appJson from './app.json';
+const appJson = require('./app.json');
 
 /** EAS Build 시 EXPO_PUBLIC_* 가 extra에도 들어가도록 (APK env 누락 대비) */
-export default (): ExpoConfig => ({
+module.exports = () => ({
   ...appJson.expo,
   extra: {
     ...appJson.expo.extra,

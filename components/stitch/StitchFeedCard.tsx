@@ -1,4 +1,5 @@
 import { AppIcon } from '@/components/AppIcon';
+import { LikeCount } from '@/components/LikeCount';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { STITCH_FEED_IMAGES } from '@/constants/stitch-assets';
@@ -60,7 +61,7 @@ export function StitchFeedCard({
             <Text style={styles.badgeSecondaryText}>{stopsLabel}</Text>
           </View>
           <View style={styles.badgeGlass}>
-            <Text style={styles.badgeGlassText}>♥ {route.like_count}</Text>
+            <LikeCount count={route.like_count} />
           </View>
         </View>
         <View style={styles.favBtn}>

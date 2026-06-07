@@ -80,9 +80,17 @@ const serif = Platform.select({
   default: 'NotoSerif_700Bold',
 });
 
+/** Android APK: 커스텀 폰트에 ♥·★ 글리프가 없어 빈 칸으로 보일 수 있음 → 입력란은 시스템 폰트 */
 const sans = Platform.select({
   web: "'Plus Jakarta Sans', sans-serif",
+  android: 'PlusJakartaSans_400Regular',
   default: 'PlusJakartaSans_400Regular',
+});
+
+export const inputFontFamily = Platform.select({
+  web: sans,
+  android: undefined,
+  default: sans,
 });
 
 export const fontSerifSemi = Platform.select({

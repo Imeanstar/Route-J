@@ -2,6 +2,24 @@
 
 프로젝트는 이미 Expo에 연결됨: `@mike4403/route-j` (`app.json` → `extra.eas.projectId`).
 
+## `expo config --json exited with non-zero code: 1`
+
+로컬 Node가 **v24**이면 Expo SDK 52와 충돌할 수 있습니다 (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`).
+
+1. **Node 24 LTS**를 쓰는 경우: `expo-web-browser` config 플러그인 제거 + `app.config.js` 반영으로 `eas build`가 통과하는지 먼저 확인 (현재 저장소 기준)
+2. **새로 설치**한다면: Node **22 LTS** (`v22.22.x` 등) — 2026년 기준 **20은 EOL**, Expo 로컬 도구와도 무난한 편
+3. 프로젝트 루트 `.nvmrc` = `22` (nvm/fnm: `nvm use` / `fnm use`)
+4. `app.config.ts` 대신 `app.config.js` 사용 (이미 반영)
+5. `expo-web-browser` config 플러그인은 Node 24에서 config 단계가 깨질 수 있음 — Android `intentFilters`로 OAuth 딥링크 처리
+
+확인:
+
+```powershell
+npx expo config --json
+```
+
+성공하면 JSON 한 줄이 출력됩니다.
+
 ## Git 오류가 날 때 (Windows)
 
 터미널에 `git command not found` 또는 `git --help exited with status undefined` 가 나오면:

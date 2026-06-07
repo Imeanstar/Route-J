@@ -1,4 +1,5 @@
 import { AppIcon } from '@/components/AppIcon';
+import { LikeCount } from '@/components/LikeCount';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, FEED_PLACEHOLDERS, radius, shadow, spacing, type } from '@/constants/theme';
@@ -39,7 +40,7 @@ export function RouteFeedCard({ route, imageUri, stopCount, onPress }: Props) {
             <Text style={styles.badgeText}>{stopsLabel}</Text>
           </View>
           <View style={styles.badgeGlass}>
-            <Text style={styles.badgeTextLight}>♥ {route.like_count}</Text>
+            <LikeCount count={route.like_count} />
           </View>
         </View>
       </View>

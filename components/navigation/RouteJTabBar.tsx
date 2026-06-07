@@ -1,6 +1,5 @@
 import { CommonActions } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useRouter } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
@@ -27,7 +26,6 @@ function isTabVisible(
 /** 하단 탭 — 라벨 맨 아래 활성 강조선 */
 export function RouteJTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const visibleRoutes = state.routes.filter((route) => isTabVisible(route, descriptors));
 
   return (
@@ -52,10 +50,6 @@ export function RouteJTabBar({ state, descriptors, navigation }: BottomTabBarPro
           const iconName = TAB_ICONS[route.name] ?? 'home';
 
           const onPress = () => {
-            if (route.name === 'create') {
-              router.push('/route/create');
-              return;
-            }
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,

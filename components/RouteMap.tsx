@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { colors, radius, type } from '@/constants/theme';
 import {
@@ -24,12 +24,23 @@ function RouteMapFallback({ message, height }: { message: string; height: number
 }
 
 export function RouteMap({ stops, height = 240, onPress }: Props) {
+  const [webviewReady, setWebviewReady] = useState(Platform.OS === 'web');
   const mapped = useMemo(() => stopsWithCoords(stops), [stops]);
   const appKey = readKakaoJavascriptKey();
   const html = useMemo(
     () => (appKey && mapped.length > 0 ? buildKakaoMapHtml(mapped, appKey) : null),
     [appKey, mapped],
   );
+
+  /** Android: ScrollView 안 WebView가 즉시 마운트되면 흰 화면·ANR이 날 수 있어 한 프레임 뒤 로드 */
+  useEffect(() => {
+    if (Platform.OS === 'web' || !html) return;
+    const timer = setTimeout(() => setWebviewReady(true), 120);
+    return () => {
+      clearTimeout(timer);
+      setWebviewReady(false);
+    };
+  }, [html]);
 
   if (!appKey) {
     return (
@@ -49,11 +60,21 @@ export function RouteMap({ stops, height = 240, onPress }: Props) {
     );
   }
 
+  if (!webviewReady) {
+    return (
+      <View style={[styles.box, styles.pending, { height }]}>
+        <ActivityIndicator color={colors.primary} />
+        <Text style={styles.pendingText}>지도 불러오는 중…</Text>
+      </View>
+    );
+  }
+
   const content = (
     <WebView
       source={{ html: html! }}
       style={styles.webview}
       scrollEnabled={false}
+      nestedScrollEnabled={false}
       bounces={false}
       overScrollMode="never"
       originWhitelist={['*']}
@@ -62,6 +83,7 @@ export function RouteMap({ stops, height = 240, onPress }: Props) {
       setBuiltInZoomControls={false}
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
+      androidLayerType="hardware"
     />
   );
 
@@ -97,4 +119,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   fallbackText: { ...type.bodySm, color: colors.outline, textAlign: 'center' },
+  pending: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.subtleGray,
+  },
+  pendingText: { ...type.bodySm, color: colors.outline },
 });
