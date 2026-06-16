@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { showMessage } from '@/lib/show-message';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { StitchButton } from '@/components/stitch/StitchButton';
 import { StitchField } from '@/components/stitch/StitchField';
@@ -9,7 +10,7 @@ import { StitchScreen } from '@/components/stitch/StitchScreen';
 import { colors, spacing, type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { safeGoBack } from '@/lib/navigation';
-import { EAS_SUPABASE_SETUP_HINT, isSupabaseConfigured } from '@/lib/supabase';
+import { DEV_SUPABASE_NETWORK_HINT, EAS_SUPABASE_SETUP_HINT, isSupabaseConfigured } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -41,7 +42,8 @@ export default function LoginScreen() {
         hint =
           '\n\n이메일 확인 링크를 누르거나, 개발용으로 Supabase에서 Confirm email 을 끄세요.';
       } else if (lower.includes('network request failed')) {
-        hint = `\n\n${EAS_SUPABASE_SETUP_HINT}`;
+        const isExpoGo = Constants.appOwnership === 'expo';
+        hint = `\n\n${isExpoGo || __DEV__ ? DEV_SUPABASE_NETWORK_HINT : EAS_SUPABASE_SETUP_HINT}`;
       }
       showMessage('로그인 실패', error + hint);
     } else safeGoBack(router, '/(tabs)/profile');

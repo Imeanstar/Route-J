@@ -4,7 +4,7 @@ import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { StitchButton } from '@/components/stitch/StitchButton';
 import { colors, spacing, type } from '@/constants/theme';
-import { createSessionFromUrl } from '@/lib/auth-session-core';
+import { createSessionFromUrl, isOAuthReturnUrl } from '@/lib/auth-session-core';
 import { supabase } from '@/lib/supabase';
 
 /** OAuth(카카오 등) 리다이렉트 — 토큰·code를 세션으로 교환 */
@@ -22,15 +22,23 @@ export default function AuthCallbackScreen() {
           callbackUrl = (await Linking.getInitialURL()) ?? '';
         }
 
-        if (callbackUrl) {
-          const { error: sessionError } = await createSessionFromUrl(callbackUrl, {
-            allowExistingSession: true,
-          });
-          if (sessionError) {
-            setError(sessionError);
+        /** APK: intent만 잡히고 OAuth payload 없으면 callback 화면이 흰 화면으로 탭을 덮음 */
+        if (Platform.OS !== 'web') {
+          if (!callbackUrl || !isOAuthReturnUrl(callbackUrl)) {
+            router.replace('/(tabs)/explore');
             return;
           }
-        } else {
+        }
+
+        if (callbackUrl) {
+          const { error: sessionError, handled } = await createSessionFromUrl(callbackUrl, {
+            allowExistingSession: Platform.OS === 'web',
+          });
+          if (!handled || sessionError) {
+            setError(sessionError ?? '로그인 응답을 처리하지 못했습니다.');
+            return;
+          }
+        } else if (Platform.OS === 'web') {
           const { data } = await supabase.auth.getSession();
           if (!data.session) {
             setError('로그인 응답을 받지 못했습니다. 다시 시도해 주세요.');
@@ -45,7 +53,7 @@ export default function AuthCallbackScreen() {
           /* ignore */
         }
 
-        router.replace('/(tabs)/profile');
+        router.replace('/(tabs)/explore');
       } catch (e) {
         setError(e instanceof Error ? e.message : '로그인 처리 실패');
       }
@@ -75,8 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: spacing.gutter,
+    backgroundColor: colors.background,
   },
   errorTitle: { color: colors.error },
   errorMsg: { textAlign: 'center', color: colors.outline, marginBottom: spacing.md },

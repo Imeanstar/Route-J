@@ -7,6 +7,10 @@ import { createAuthStorage } from '@/lib/auth-storage';
 export const EAS_SUPABASE_SETUP_HINT =
   'EAS → Environment variables(preview)에 EXPO_PUBLIC_SUPABASE_URL·ANON_KEY를 Sensitive로 등록한 뒤 eas build를 다시 실행해 주세요.';
 
+/** Expo Go·로컬 개발 — Network request failed 시 (EAS 안내와 혼동 방지) */
+export const DEV_SUPABASE_NETWORK_HINT =
+  'Expo Go: 프로필 탭 하단 "서버: mzqlnhvanubhkixggpvh.supabase.co"가 보이는지 확인하세요. 없으면 .env 확인 후 npx expo start --clear. 서버가 보이는데도 실패하면 폰 Wi‑Fi(PC와 같은 망), VPN 끄기, Supabase 대시보드에서 프로젝트 일시중지(paused) 여부를 확인하세요.';
+
 function readPublicEnv(key: 'EXPO_PUBLIC_SUPABASE_URL' | 'EXPO_PUBLIC_SUPABASE_ANON_KEY'): string {
   const fromBundle = process.env[key];
   if (fromBundle?.trim()) return fromBundle.trim();

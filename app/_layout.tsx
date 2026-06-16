@@ -4,7 +4,6 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { DeferredAuthOAuthLinkHandler } from '@/components/DeferredAuthOAuthLinkHandler';
 import { AuthProvider } from '@/lib/auth';
 import { loadAppFonts } from '@/lib/load-app-fonts';
 import { colors } from '@/constants/theme';
@@ -44,7 +43,6 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <DeferredAuthOAuthLinkHandler />
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
